@@ -1,5 +1,6 @@
 const { ipcRenderer } = require('electron');
 
+// DOM References
 const bUpload               = document.getElementById('upload-button');
 const liUploadFiles         = document.getElementById('uploaded-files');
 const bSelectOutputLocation = document.getElementById('output-location-button');
@@ -8,15 +9,18 @@ const bConvertFiles         = document.getElementById('convert-files-button');
 const pConvertFiles         = document.getElementById('conversion-progress');
 const cbUseOutputFolder     = document.getElementById('use-output-folder-checkbox');
 
+// Other variables
 let numFiles = 0;
-let useOutputFolder = false;
 
+// Event listeners and setting properties
 bUpload.addEventListener('click', () => ipcRenderer.send('upload-button-clicked'));
 bSelectOutputLocation.addEventListener('click', () => ipcRenderer.send('output-location-button-clicked'));
 bConvertFiles.addEventListener('click', () => ipcRenderer.send('convert-files-button-clicked'));
-cbUseOutputFolder.addEventListener('change', () => ipcRenderer.send('output-folder-checkbox-changed', cbUseOutputFolder.checked));
 
-ipcRenderer.on('selected-files', (event, files, directory) => {
+cbUseOutputFolder.addEventListener('change', () => ipcRenderer.send('output-folder-checkbox-changed', cbUseOutputFolder.checked));
+cbUseOutputFolder.disabled = true;
+
+ipcRenderer.on('selected-files', (event, files, directory, useOutputFolderDisabled) => {
   numFiles = files.length;
 
   for(const file of files) {
@@ -26,10 +30,12 @@ ipcRenderer.on('selected-files', (event, files, directory) => {
   }
 
   lbOutputLocation.innerHTML = directory;
+  cbUseOutputFolder.disabled = useOutputFolderDisabled;
 });
 
-ipcRenderer.on('selected-output-directory', (event, directory) => {
+ipcRenderer.on('selected-output-directory', (event, directory, useOutputFolderDisabled) => {
   lbOutputLocation.innerHTML = directory;
+  cbUseOutputFolder.disabled = useOutputFolderDisabled;
 });
 
 ipcRenderer.on('conversion-progress-update', (event, numConvertedFiles) => {
@@ -53,6 +59,8 @@ ipcRenderer.on('alert-no-directory-selected', (event, args) => {
   alert('No directory selected!');
 });
 
-ipcRenderer.on('alert=no-directory-checkbox', (event, args) => {
+
+
+ipcRenderer.on('alert-no-directory-checkbox', (event, args) => {
   
 })

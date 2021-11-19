@@ -2,17 +2,24 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const webp = require('webp-converter');
 
+// Enable permissions for webp
 webp.grant_permission();
 
+// Script variables
 let mainWindow = null;
 let selectedFiles = null;
 let selectedOutputDirectory = null;
 let useOutputFolder = null;
 
+let disableOutputFolderCheckbox = true;
+
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+/**
+ * Creates the main window.
+ */
 const createWindow = () => {
   const windowTitle = `Webp Image Converter | Running NodeJS Version ${process.versions.node}`;
 
@@ -31,8 +38,10 @@ const createWindow = () => {
   //mainWindow.webContents.openDevTools();
 }
 
+// Once the application is ready, create the window.
 app.on('ready', createWindow);
 
+// If all the windows are closed, terminate the program.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
@@ -45,6 +54,9 @@ app.on('activate', () => {
   }
 });
 
+/**
+ * Called when the upload button is clicked.
+ */
 ipcMain.on('upload-button-clicked', event => {
   dialog.showOpenDialog({
     title: 'Select images to upload',
@@ -58,23 +70,35 @@ ipcMain.on('upload-button-clicked', event => {
     if(!selected.canceled) {
       selectedFiles = selected.filePaths;
       selectedOutputDirectory = selectedOutputDirectory === null ? path.dirname(selectedFiles[0]) : selectedOutputDirectory;
-      event.reply('selected-files', selectedFiles, selectedOutputDirectory);
+      disableOutputFolderCheckbox = false;
+
+      event.reply('selected-files', selectedFiles, selectedOutputDirectory, disableOutputFolderCheckbox);
     }
   })
   .catch(error => console.log(error));
 });
 
+/**
+ * Called when the output location button is clicked.
+ */
 ipcMain.on('output-location-button-clicked', event => {
   dialog.showOpenDialog({
     properties: ['openDirectory']
   })
   .then(selected => {
-    selectedOutputDirectory = selected.filePaths;
-    event.reply('selected-output-directory', selectedOutputDirectory);
+    if(!selected.canceled) {
+      selectedOutputDirectory = selected.filePaths;
+      disableOutputFolderCheckbox = false;
+      
+      event.reply('selected-output-directory', selectedOutputDirectory, disableOutputFolderCheckbox);
+    }
   })
   .catch(error => console.log(error));
 });
 
+/**
+ * Called when the convert files button is clicked.
+ */
 ipcMain.on('convert-files-button-clicked', event => {
   if(selectedFiles === null) {
     mainWindow.webContents.send('alert-no-files-selected');
@@ -87,6 +111,10 @@ ipcMain.on('convert-files-button-clicked', event => {
   convertFiles();
 });
 
+/**
+ * Helper function that iterates over all of the selected images,
+ * and converts them into the .webp format.
+ */
 const convertFiles = async () => {
   let numConverted = 0;
   
@@ -106,6 +134,9 @@ const convertFiles = async () => {
   mainWindow.webContents.send('conversion-complete', numConverted);
 }
 
+/**
+ * Called when the use output folder checkbox is toggled.
+ */
 ipcMain.on('output-folder-checkbox-changed', (event, uof) => {
   
 });
