@@ -59,8 +59,6 @@ ipcRenderer.on('alert-no-directory-selected', (event, args) => {
   alert('No directory selected!');
 });
 
-
-
 ipcRenderer.on('alert-no-directory-checkbox', (event, args) => {
   
-})
+});

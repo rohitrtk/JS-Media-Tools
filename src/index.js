@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const webp = require('webp-converter');
 
 // Enable permissions for webp
@@ -118,17 +119,31 @@ ipcMain.on('convert-files-button-clicked', event => {
 const convertFiles = async () => {
   let numConverted = 0;
   
+  let outputFolder = '';
+  if(useOutputFolder) {
+    outputFolder = '/output';
+    const outputDir = `${selectedOutputDirectory}${outputFolder}`;
+
+    if(!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir);
+    }
+  }
+
   for(const file of selectedFiles) {
     const dirName = path.dirname(file);
     const fileExt = path.extname(file);
     const fileName = path.basename(file, fileExt);
     
     const inputFile = `${dirName}/${fileName}${fileExt}`;
-    const outputDir = `${selectedOutputDirectory}${useOutputFolder ? '/output' : ''}/${fileName}.webp`;
+    const outputDir = `${selectedOutputDirectory}${outputFolder}/${fileName}.webp`;
 
-    await webp.cwebp(inputFile, outputDir, '-q 5', logging='-v');
-    numConverted++;
-    mainWindow.webContents.send('conversion-progress-update', numConverted);
+    try {
+      await webp.cwebp(inputFile, outputDir, '-q 5', logging='-v');
+      numConverted++;
+      mainWindow.webContents.send('conversion-progress-update', numConverted);
+    } catch(error) {
+      console.error(error);
+    } 
   }
   
   mainWindow.webContents.send('conversion-complete', numConverted);
@@ -138,5 +153,5 @@ const convertFiles = async () => {
  * Called when the use output folder checkbox is toggled.
  */
 ipcMain.on('output-folder-checkbox-changed', (event, uof) => {
-  
+  useOutputFolder = uof;
 });

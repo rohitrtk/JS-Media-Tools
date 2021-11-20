@@ -10,5 +10,5 @@
 
 ## Usage
 
-Once the application is open, there will 3 buttons. The first of interest is the `Upload Files` button, which once clicked will prompt you to select images in a folder you wish to convert. The second is the `Output Directory` button, which when clicked will
-prompt you to select a folder to output the converted webp images to. By default, when you first select your images, the output directory will automatically be set to the directory of those selected images. The third button is the convert button which as its name suggests, converts your images to webp.
+Once the application is open, there will 3 buttons. The first of interest is the **Upload Files** button, which once clicked will prompt you to select images in a folder you wish to convert. The second is the **Output Directory** button, which when clicked will
+prompt you to select a folder to output the converted webp images to. By default, when you first select your images, the output directory will automatically be set to the directory of those selected images. The third button is the **Convert** button which as its name suggests, converts your images to webp.
