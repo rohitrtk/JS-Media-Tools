@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!-- Title gets set in JS -->
     <!--title>Webp Converter</title-->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <!--link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"-->
     <link rel="stylesheet" href="index.css">
 
     <script defer src='./renderer.js'></script>
@@ -13,21 +13,18 @@
     <div class='container'>
       <div class=left>
         <h3>Upload File</h3>
-        <button id='upload-button'>Upload File</button>
-        <ul id='uploaded-files'></ul>
+        <button id='upload-button'>Select Files</button>
+        <ol id='uploaded-files'></ul>
       </div>
       <div class='right'>
-        <div class='upper-right'>
-          <h3>Output Location</h3>
-          <button id='output-location-button'>Select Output Location</button>
-          <label id='output-location-label'></label><br>
-          <input type='checkbox' id='use-output-folder-checkbox'>
-          <label for='use-output-folder-checkbox'>Generate Output Folder</label>
-        </div>
-        <div class='lower-right'>
-          <button id='convert-files-button'>Convert Files</button>
-          <div id='conversion-progress'></div>
-        </div>
+        <h3>Output Location</h3>
+        <button id='output-location-button'>Select Output Location</button>
+        <label id='output-location-label'><br>No location selected</label><br>
+        <input type='checkbox' id='use-output-folder-checkbox'>
+        <label for='use-output-folder-checkbox'>Generate Output Folder</label>
+        <br><button id='convert-files-button'>Convert Files</button>
+        <button id='clear-files-button'>Clear Files</button>
+        <div id='conversion-progress'></div>
       </div>
     </div>
   </body>
