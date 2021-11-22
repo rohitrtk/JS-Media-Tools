@@ -2,10 +2,11 @@ const { ipcRenderer } = require('electron');
 
 // DOM References
 const bUpload               = document.getElementById('upload-button');
-const liUploadFiles         = document.getElementById('uploaded-files');
 const bSelectOutputLocation = document.getElementById('output-location-button');
-const lbOutputLocation      = document.getElementById('output-location-label');
 const bConvertFiles         = document.getElementById('convert-files-button');
+const bClearFiles           = document.getElementById('clear-files-button');
+const liUploadFiles         = document.getElementById('uploaded-files');
+const lbOutputLocation      = document.getElementById('output-location-label');
 const pConvertFiles         = document.getElementById('conversion-progress');
 const cbUseOutputFolder     = document.getElementById('use-output-folder-checkbox');
 
@@ -16,6 +17,12 @@ let numFiles = 0;
 bUpload.addEventListener('click', () => ipcRenderer.send('upload-button-clicked'));
 bSelectOutputLocation.addEventListener('click', () => ipcRenderer.send('output-location-button-clicked'));
 bConvertFiles.addEventListener('click', () => ipcRenderer.send('convert-files-button-clicked'));
+bClearFiles.addEventListener('click', () => {
+  ipcRenderer.send('clear-files-button-clicked');
+  while(liUploadFiles.firstChild) {
+    liUploadFiles.removeChild(liUploadFiles.lastChild);
+  }
+});
 
 cbUseOutputFolder.addEventListener('change', () => ipcRenderer.send('output-folder-checkbox-changed', cbUseOutputFolder.checked));
 cbUseOutputFolder.disabled = true;

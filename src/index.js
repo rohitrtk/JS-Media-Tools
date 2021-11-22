@@ -155,3 +155,8 @@ const convertFiles = async () => {
 ipcMain.on('output-folder-checkbox-changed', (event, uof) => {
   useOutputFolder = uof;
 });
+
+ipcMain.on('clear-files-button-clicked', event => {
+  selectedFiles = null;
+  
+});
