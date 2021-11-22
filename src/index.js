@@ -109,7 +109,9 @@ ipcMain.on('convert-files-button-clicked', event => {
     return;
   }
 
-  convertFiles();
+  convertFiles().catch(error => {
+    throw new Error(`An unhandled exception occured:\n${error}`);
+  });
 });
 
 /**
@@ -121,24 +123,26 @@ const convertFiles = async () => {
   
   let outputFolder = '';
   if(useOutputFolder) {
-    outputFolder = '/output';
-    const outputDir = `${selectedOutputDirectory}${outputFolder}`;
+    outputFolder = 'output';
+    const outputDir = path.join(selectedOutputDirectory, outputFolder);
 
     if(!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir);
     }
   }
 
-  for(const file of selectedFiles) {
-    const dirName = path.dirname(file);
-    const fileExt = path.extname(file);
-    const fileName = path.basename(file, fileExt);
-    
-    const inputFile = `${dirName}/${fileName}${fileExt}`;
-    const outputDir = `${selectedOutputDirectory}${outputFolder}/${fileName}.webp`;
+  const webpExt = '.webp';
+
+  for(const file of selectedFiles) {    
+    const fileParsed  = path.parse(file);
+    const inputFile   = path.join(fileParsed.dir, fileParsed.base);
+    fileParsed.dir    = path.join(fileParsed.dir, outputFolder);
+    fileParsed.ext    = webpExt;
+    fileParsed.base   = fileParsed.base.split('.')[0] + webpExt;
+    const outputFile  = path.format(fileParsed);
 
     try {
-      await webp.cwebp(inputFile, outputDir, '-q 5', logging='-v');
+      await webp.cwebp(inputFile, outputFile, '-q 5', logging='-v');
       numConverted++;
       mainWindow.webContents.send('conversion-progress-update', numConverted);
     } catch(error) {
@@ -156,7 +160,9 @@ ipcMain.on('output-folder-checkbox-changed', (event, uof) => {
   useOutputFolder = uof;
 });
 
+/**
+ * Called when the clear files button is clicked.
+ */
 ipcMain.on('clear-files-button-clicked', event => {
   selectedFiles = null;
-  
 });
