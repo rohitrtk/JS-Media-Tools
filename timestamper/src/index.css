@@ -7,6 +7,12 @@ body {
 
 canvas {
   width: 100%;
+  background-color: black;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
 }
 
 .bottom {

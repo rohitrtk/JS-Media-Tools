@@ -7,8 +7,12 @@
     <script defer src='./renderer.js'></script>
   </head>
   <body>
-    <button id='select-audio-button'>Select Audio</button>
-    <label id='selected-audio-label'>No audio file selected</label>
+    <div class='top'>
+      <button id='select-audio-button'>Select Audio</button>
+      <label id='selected-audio-label'>No audio file selected</label>
+      <button id='play-audio'>Play Audio</button>
+      <button id='pause-audio'>Pause Audio</button>
+    </div>
     <canvas id=canvas></canvas>
     <div class='bottom'>
       <dl id='timestamps-list'><b>Timestamps</b>

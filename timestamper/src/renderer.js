@@ -1,7 +1,10 @@
 const { ipcRenderer } = require('electron');
+const TimeStamp = require('./timestamp');
 
 const bSelectAudio      = document.getElementById('select-audio-button');
 const bGetJson          = document.getElementById('selected-audio-label');
+const bPlayAudio        = document.getElementById('play-audio');
+const bPauseAudio       = document.getElementById('pause-audio');
 const lbSelectedAudio   = document.getElementById('selected-audio-label');
 const liTimestamps      = document.getElementById('timestamps-list');
 const canvas            = document.getElementById('canvas');
@@ -24,8 +27,22 @@ let dataArray = null;
 let bufferLength;
 let isSilent = false;
 
+let timestamps = [];
+
 bSelectAudio.addEventListener('click', () => ipcRenderer.send('select-audio-button-clicked'));
 bGetJson.addEventListener('click', () => ipcRenderer.send('get-json-button-clicked'));
+
+bPlayAudio.addEventListener('click', () => {
+  if(audio) {
+    audio.play();
+  }
+});
+
+bPauseAudio.addEventListener('click', () => {
+  if(audio) {
+    audio.pause();
+  }
+});
 
 const silentEventStarted = new CustomEvent('silentevent', {
   detail: { silent: true }
@@ -43,7 +60,6 @@ ipcRenderer.on('audio-file-selected', (event, saf) => {
 
   initAudio();
   beginDraw();
-  audio.play();
 });
 
 const initAudio = () => {
@@ -141,13 +157,24 @@ const render = () => {
 }
 
 document.addEventListener('silentevent', event => {
+  if(!audio) {
+    return;
+  }
+  
   isSilent = event.detail.silent;
+  const currentTime = audio.currentTime;
 
   if(isSilent) {
-    //const currentTime = audio.currentTime;
+    if(timestamps.length > 0) {
+      const prevTimestamp = timestamps.at(-1);
+      prevTimestamp.setEndTime(currentTime);
+      console.log(`Created new timestamp: ${JSON.stringify(prevTimestamp.getTimings())}`);
+    }
     
-    console.log('Silent');
+    //console.log('Silent');
   } else {
-    console.log('Sound');
+    timestamps.push(new TimeStamp(currentTime));
+
+    //console.log('Sound');
   }
 })
