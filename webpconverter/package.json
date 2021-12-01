@@ -1,6 +1,6 @@
 {
-  "name": "media-tools-gui",
-  "productName": "media-tools-gui",
+  "name": "webpconverter",
+  "productName": "webpconverter",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": "src/index.js",
@@ -13,8 +13,7 @@
   },
   "keywords": [],
   "author": {
-    "name": "rohitrtk",
-    "email": "rohit_rtk@hotmail.com"
+    "name": "rohitrtk"
   },
   "license": "MIT",
   "config": {
