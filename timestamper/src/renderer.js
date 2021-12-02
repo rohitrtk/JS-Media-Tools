@@ -3,10 +3,11 @@ const TimeStamp = require('./timestamp');
 
 // DOM References
 const bSelectAudio      = document.getElementById('select-audio-button');
-const bGetJson          = document.getElementById('get-json-button');
-const bPlayAudio        = document.getElementById('play-audio');
-const bPauseAudio       = document.getElementById('pause-audio');
+const bExportTimestamps = document.getElementById('export-timestamps');
+const bToggleAudio      = document.getElementById('toggle-audio');
 const lbSelectedAudio   = document.getElementById('selected-audio-label');
+const lbThreshold       = document.getElementById('threshold-label');
+const inThreshold       = document.getElementById('threshold-input');
 const liTimestamps      = document.getElementById('timestamps-list');
 const canvas            = document.getElementById('canvas');
 const ctx               = canvas.getContext('2d');
@@ -18,35 +19,78 @@ let running       = false;
 let startTime, now, then, elapsed;
 
 // Audio references
-let selectedAudioFile = null;
-let audioPlaying = false;
-let audio = null;
-let audioContext;
-let audioAnalyzer = null;
-let dataArray = null;
-let bufferLength;
+let audio, audioContext, audioAnalyzer, dataArray, bufferLength, selectedAudioFile; 
 let isSilent = false;
+let audioThreshold = 250;
 
 let timestamps = [];
 
+inThreshold.setAttribute('value', audioThreshold);
+inThreshold.addEventListener('input', event => {
+  audioThreshold = event.target.value;
+});
+
 bSelectAudio.addEventListener('click', () => ipcRenderer.send('select-audio-button-clicked'));
-bGetJson.addEventListener('click', () => {
-  if(timestamps.length === 0) {
-    alert('No timestamps to export!');
-  } else {
-    ipcRenderer.send('get-json-button-clicked', timestamps);
-  }
-});
 
-bPlayAudio.addEventListener('click', () => {
-  if(audio) {
-    audio.play();
+bExportTimestamps.disabled = true;
+bExportTimestamps.addEventListener('click', () => {
+  if(!audio) {
+    alert('No audio selected!');
+    return;
   }
-});
-
-bPauseAudio.addEventListener('click', () => {
-  if(audio) {
+  
+  if(!audio.paused) {
     audio.pause();
+  }
+
+  bSelectAudio.disabled = true;
+  bToggleAudio.disabled = true;
+  bExportTimestamps.disabled = true;
+  
+  audio.currentTime = 0;
+  audio.playbackRate = 16;
+
+  ipcRenderer.send('export-timestamps-button-clicked');
+});
+
+ipcRenderer.on('begin-export', () => {
+  const onAudioEnd = event => {
+    audio.removeEventListener('ended', onAudioEnd);
+
+    bSelectAudio.disabled = false;
+    bToggleAudio.disabled = false;
+    bExportTimestamps.disabled = false;
+
+    audio.playbackRate = 1;
+
+    ipcRenderer.send('export-timestamps', timestamps);
+  }
+
+  audio.addEventListener('ended', onAudioEnd);
+  audio.play();
+});
+
+ipcRenderer.on('export-complete', () => {
+  alert('Timestamp export complete');
+});
+
+bToggleAudio.disabled = true;
+bToggleAudio.addEventListener('click', () => {
+  if(!audio) {
+    alert('No audio selected!');
+    return;
+  }
+
+  // If audio is playing...
+  if(!audio.paused) {
+    audio.pause();
+    bToggleAudio.innerHTML = 'Play Audio';
+  } else {
+    if(audio.playbackrate !== 1) {
+      audio.playbackrate = 1;
+    }
+    audio.play();
+    bToggleAudio.innerHTML = 'Pause Audio';
   }
 });
 
@@ -58,11 +102,34 @@ const silentEventEnded = new CustomEvent('silentevent', {
   detail: { silent: false }
 });
 
-ipcRenderer.on('audio-file-selected', (event, saf) => {
-  selectedAudioFile = saf;
-  lbSelectedAudio.innerText = saf;
+const reset = () => {
+  audio.pause();
+  isSilent = false;
+  
+  timestamps = [];
+  
+  while(liTimestamps.firstChild) {
+    liTimestamps.removeChild(liTimestamps.firstChild);
+  }
+  liTimestamps.innerHTML = '<b>Timestamps</b>';
+
+  bToggleAudio.innerHTML = 'Play Audio';
+  bToggleAudio.disabled = true;
+  bExportTimestamps.disabled = true;
+}
+
+ipcRenderer.on('audio-file-selected', (event, newSelectedAudioFile) => {
+  if(selectedAudioFile) {
+    reset();
+  }
+
+  selectedAudioFile = newSelectedAudioFile;
+  lbSelectedAudio.innerText = newSelectedAudioFile;
 
   running = true;
+
+  bToggleAudio.disabled = false;
+  bExportTimestamps.disabled = false;
 
   initAudio();
   beginDraw();
@@ -71,14 +138,6 @@ ipcRenderer.on('audio-file-selected', (event, saf) => {
 const initAudio = () => {
   audio = new Audio(selectedAudioFile);
   //audio.playbackRate = 16;
-  
-  audio.addEventListener('play', () => {
-    audioPlaying = true;
-  });
-
-  audio.addEventListener('pause', () => {
-    audioPlaying = false;
-  });
 
   audioContext = new AudioContext();
   audioAnalyzer = audioContext.createAnalyser();
@@ -147,16 +206,15 @@ const render = () => {
   ctx.lineTo(canvas.width, canvas.height / 2);
   ctx.stroke();
 
-  if(audioPlaying) {
-    const threshhold = 250;
+  if(!audio.paused) {
     let sum = 0;
     for(const value in dataArray) {
       sum += Math.abs(128 - dataArray[value]);
     }
 
-    if(sum < threshhold && !isSilent) {
+    if(sum < audioThreshold && !isSilent) {
       document.dispatchEvent(silentEventStarted);
-    } else if(sum >= threshhold && isSilent) {
+    } else if(sum >= audioThreshold && isSilent) {
       document.dispatchEvent(silentEventEnded);
     }
   }

@@ -2,12 +2,13 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-const TimeStamp = require('./timestamp.js');
+let mainWindow;
+let selectedAudioFile;
+let outputDirectory;
 
-let mainWindow = null;
-let selectedAudioFile = null;
+const outputFile = 'timestamps.json';
 
-if (require('electron-squirrel-startup')) { 
+if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
@@ -16,17 +17,18 @@ const createWindow = () => {
 
   mainWindow = new BrowserWindow({
     title: windowTitle,
-    width: 800,
-    height: 600,
+    width: 600,
+    height: 500,
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
-    }
+    },
+    resizable: false
   });
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools();
 };
 
 app.on('ready', createWindow);
@@ -61,22 +63,28 @@ ipcMain.on('select-audio-button-clicked', event => {
   .catch(error => console.log(error));
 });
 
-ipcMain.on('get-json-button-clicked', (event, timestamps) => {
+ipcMain.on('export-timestamps', (event, timestamps) => {
+  const data = JSON.stringify(timestamps, null, 2);
+
+  fs.writeFile(path.join(outputDirectory, outputFile), data, error => {
+    if(error) {
+      throw error;
+    } else {
+      mainWindow.webContents.send('export-complete');
+    }
+  });
+});
+
+ipcMain.on('export-timestamps-button-clicked', event => {
   dialog.showOpenDialog({
     title: 'Select save directory',
     properties: ['openDirectory']
   })
   .then(selected => {
     if(!selected.canceled) {
-      const outputDirectory = selected.filePaths[0];
-      const outputFile = 'timestamps.json';
-      const data = JSON.stringify(timestamps, null, 2);
+      outputDirectory = selected.filePaths[0];
 
-      fs.writeFile(path.join(outputDirectory, outputFile), data, error => {
-        if(error) {
-          throw error;
-        }
-      });
+      mainWindow.webContents.send('begin-export');
     }
   })
   .catch(error => console.log(error));

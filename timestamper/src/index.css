@@ -2,24 +2,11 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   margin: auto;
   max-width: 38rem;
-  padding: 2rem;
+  padding: 0.5rem;
 }
 
 canvas {
+  padding-top: 1em;
   width: 100%;
   background-color: black;
-}
-
-.top {
-  display: grid;
-  grid-template-columns: auto auto auto auto;
-}
-
-.bottom {
-  display: grid;
-  grid-template-columns: auto auto;
-}
-
-#get-json-button {
-  margin: 20%;
 }
