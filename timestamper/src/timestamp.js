@@ -1,21 +1,20 @@
 class TimeStamp {
   /**
-   * Class constructor. Converts startTime and endTime from a Number
-   * to a String.
+   * Class constructor.
    * @param {Number} startTime 
    * @param {Number} endTime 
    */
   constructor(startTime=null, endTime=null) {
-    this._startTime = TimeStamp.formatTime(startTime);
-    this._endTime = TimeStamp.formatTime(endTime);
+    this._startTime = startTime ? startTime.toFixed(3) : startTime; //TimeStamp.formatTime(startTime);
+    this._endTime = endTime ? endTime.toFixed(3) : endTime; //TimeStamp.formatTime(endTime);
   }
 
   /**
-   * Setter for startTime. Converts startTime to a String!
+   * Setter for startTime.
    * @param {Number} startTime 
    */
   setStartTime(startTime) {
-    this._startTime = TimeStamp.formatTime(startTime);
+    this._startTime = startTime.toFixed(3); //TimeStamp.formatTime(startTime);
   }
 
   /**
@@ -27,11 +26,11 @@ class TimeStamp {
   }
 
   /**
-   * Setter for endTime. Converts endTime to a String!
+   * Setter for endTime.
    * @param {Number} endTime 
    */
   setEndTime(endTime) {
-    this._endTime = TimeStamp.formatTime(endTime);
+    this._endTime = endTime.toFixed(3); //TimeStamp.formatTime(endTime);
   }
 
   /**
