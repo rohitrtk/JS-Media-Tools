@@ -56,13 +56,28 @@ ipcMain.on('select-audio-button-clicked', event => {
     if(!selected.canceled) {
       selectedAudioFile = selected.filePaths[0];
       mainWindow.webContents.send('audio-file-selected', selectedAudioFile);
-
-      run();
     }
   })
   .catch(error => console.log(error));
 });
 
-ipcMain.on('get-json-button-clicked', event => {
+ipcMain.on('get-json-button-clicked', (event, timestamps) => {
+  dialog.showOpenDialog({
+    title: 'Select save directory',
+    properties: ['openDirectory']
+  })
+  .then(selected => {
+    if(!selected.canceled) {
+      const outputDirectory = selected.filePaths[0];
+      const outputFile = 'timestamps.json';
+      const data = JSON.stringify(timestamps, null, 2);
 
+      fs.writeFile(path.join(outputDirectory, outputFile), data, error => {
+        if(error) {
+          throw error;
+        }
+      });
+    }
+  })
+  .catch(error => console.log(error));
 });

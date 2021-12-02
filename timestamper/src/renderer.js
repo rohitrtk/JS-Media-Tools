@@ -1,8 +1,9 @@
 const { ipcRenderer } = require('electron');
 const TimeStamp = require('./timestamp');
 
+// DOM References
 const bSelectAudio      = document.getElementById('select-audio-button');
-const bGetJson          = document.getElementById('selected-audio-label');
+const bGetJson          = document.getElementById('get-json-button');
 const bPlayAudio        = document.getElementById('play-audio');
 const bPauseAudio       = document.getElementById('pause-audio');
 const lbSelectedAudio   = document.getElementById('selected-audio-label');
@@ -10,16 +11,15 @@ const liTimestamps      = document.getElementById('timestamps-list');
 const canvas            = document.getElementById('canvas');
 const ctx               = canvas.getContext('2d');
 
-const fps = 60;
-const targetTime = 1000 / fps;
-
-let selectedAudioFile = null;
-let audioPlaying = false;
-
-let running = false;
-let frameCount = 0;
+// Draw loop variables
+const fps         = 60;
+const targetTime  = 1000 / fps;
+let running       = false;
 let startTime, now, then, elapsed;
 
+// Audio references
+let selectedAudioFile = null;
+let audioPlaying = false;
 let audio = null;
 let audioContext;
 let audioAnalyzer = null;
@@ -30,7 +30,13 @@ let isSilent = false;
 let timestamps = [];
 
 bSelectAudio.addEventListener('click', () => ipcRenderer.send('select-audio-button-clicked'));
-bGetJson.addEventListener('click', () => ipcRenderer.send('get-json-button-clicked'));
+bGetJson.addEventListener('click', () => {
+  if(timestamps.length === 0) {
+    alert('No timestamps to export!');
+  } else {
+    ipcRenderer.send('get-json-button-clicked', timestamps);
+  }
+});
 
 bPlayAudio.addEventListener('click', () => {
   if(audio) {
@@ -166,9 +172,13 @@ document.addEventListener('silentevent', event => {
 
   if(isSilent) {
     if(timestamps.length > 0) {
-      const prevTimestamp = timestamps.at(-1);
-      prevTimestamp.setEndTime(currentTime);
-      console.log(`Created new timestamp: ${JSON.stringify(prevTimestamp.getTimings())}`);
+      const ts = timestamps.at(-1);
+      ts.setEndTime(currentTime);
+
+      const liTs = document.createElement('li');
+      liTs.innerHTML = `StartTime: ${ts.getStartTime()} EndTime: ${ts.getEndTime()}`;
+      liTimestamps.appendChild(liTs);
+      //console.log(`Created new timestamp: ${JSON.stringify(ts)}`);
     }
     
     //console.log('Silent');
