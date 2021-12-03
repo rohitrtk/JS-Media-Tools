@@ -169,10 +169,29 @@ const drawLoop = (newTime) => {
   now = newTime;
   elapsed = now - then;
 
+  update();
+
   if(elapsed > targetTime) {
     then = now - elapsed % targetTime;
 
     render();
+  }
+}
+
+const update = () => {
+  if(audio.paused) {
+    return;
+  }
+
+  let sum = 0;
+  for(const value in dataArray) {
+    sum += Math.abs(128 - dataArray[value]);
+  }
+
+  if(sum < audioThreshold && !isSilent) {
+    document.dispatchEvent(silentEventStarted);
+  } else if(sum >= audioThreshold && isSilent) {
+    document.dispatchEvent(silentEventEnded);
   }
 }
 
@@ -205,19 +224,6 @@ const render = () => {
 
   ctx.lineTo(canvas.width, canvas.height / 2);
   ctx.stroke();
-
-  if(!audio.paused) {
-    let sum = 0;
-    for(const value in dataArray) {
-      sum += Math.abs(128 - dataArray[value]);
-    }
-
-    if(sum < audioThreshold && !isSilent) {
-      document.dispatchEvent(silentEventStarted);
-    } else if(sum >= audioThreshold && isSilent) {
-      document.dispatchEvent(silentEventEnded);
-    }
-  }
 }
 
 document.addEventListener('silentevent', event => {

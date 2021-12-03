@@ -50,8 +50,9 @@ ipcMain.on('select-audio-button-clicked', event => {
     title: 'Select audio file',
     properties: ['openFile'],
     filters: [
+      { name: 'All', extensions: ['*'] },
       { name: 'Audio', extensions: ['mp3', 'wav'] },
-      { name: 'All', extensions: ['*'] }
+      { name: 'Video', extensions: ['mp4'] }
     ]
   })
   .then(selected => {
